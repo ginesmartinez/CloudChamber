@@ -49,7 +49,7 @@ if (damierFileName != "noCorrection") :
     invert_gray = 255 - gray #invert the black&white image (help with detection of chessboard corner because background must be white)
 
     # Find the chess board corners
-    ret, corners = cv.findChessboardCorners(invert_gray, (nx,ny), None)
+    ret, corners = cv.findChessboardCornersSB(invert_gray, (nx,ny), None)
 
     # If found, add object points, image points (after refining them)
     if ret == True:

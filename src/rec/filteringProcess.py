@@ -1,5 +1,4 @@
 # Building
-
 import sys
 import logging
 import os
@@ -98,7 +97,7 @@ def main() :
     my_logger.info("Data %s" %(rawDataDirectory))
     my_logger.info("Files are %s" %(rawDataFileName))
     my_logger.info("Filtering images from %4d to %4d" %(iImageI, iImageF))
-    io = IO(rawDataDirectory, "aber_"+ rawDataFileName + "{}.jpeg")
+    io = IO(rawDataDirectory,"aber_"+ rawDataFileName + "{}.jpeg")
     
     # Iterating over images
     iImage = iImageI
