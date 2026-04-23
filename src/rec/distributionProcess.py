@@ -91,9 +91,9 @@ def main() :
     totalCounter= 0.
     # Fiducial volume cuts
     fiduX1 = coronaSize /  calibrationFactor
-    fiduX2 = ((interestArea_x2 - interestArea_x1) - coronaSize) /  calibrationFactor
+    fiduX2 = (interestArea_x2 - interestArea_x1) - coronaSize /  calibrationFactor
     fiduY1 = coronaSize / calibrationFactor
-    fiduY2 = ((interestArea_y2-interestArea_y1) - coronaSize) /  calibrationFactor
+    fiduY2 = (interestArea_y2-interestArea_y1) - coronaSize /  calibrationFactor
     print (fiduX1, fiduX2, fiduY1, fiduY2)
     for iImage, clusterList in clusterDict.items() :
         for cluster in clusterList :
