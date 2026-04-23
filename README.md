@@ -43,8 +43,8 @@ Main parameters include:
 - - goodCluster(): quality criteria
 - - minLength = 15, maxLength = 80 for the track selection
 - Fiducial volume
-- - interestArea_x1 = 650, interestArea_x2 = 1260,
-- - interestArea_y1 = 60, interestArea_y2 = 1030,
+- - interestArea_x1 = 650, interestArea_x2 = 1260
+- - interestArea_y1 = 60, interestArea_y2 = 1030
 - - coronaSize = 25, border exclusion
 
 This file must be adapted for each experimental setup and dataset.
@@ -88,9 +88,9 @@ filteringProcess.py  performs :
 - The idea is that a single particle track can appear split into multiple pieces, so this step reconstructs the full track by merging consistent fragments. To decide whether two clusters should be merged, the algorithm checks both their spatial and directional consistency.
 - A key step is computing the perpendicular distance from a point to a cluster direction line:
 
-$$
+$
 d = \left| -\sin(\theta)(x - x_0) + \cos(\theta)(y - y_0) \right|
-$$
+$
 
 A small value means the point is close to the track direction, while a large value means it is not related to that cluster.
 - The algorithm loops over all images and builds a clusterMergedList, which contains the final merged clusters. A mergedClusterNumberList is also used to ensure that the same cluster is not merged multiple times.
@@ -125,7 +125,7 @@ A small value means the point is close to the track direction, while a large val
 - At this stage, only clusters with good quality are kept. Cuts are applied on cluster properties such as minimum valid length and shape consistency. In addition, clusters located near the image borders are removed because edge regions are more noisy and lead to unreliable detections.
  - Total number of detected particles: the total number of reconstructed clusters is counted over all processed images:
 
-  $N_{\text{total}}$
+    $N_{\text{total}}$
 
 - Merged ratio: the merging efficiency is evaluated using the fraction of clusters that were merged during reconstruction:
 
@@ -139,7 +139,7 @@ A small value means the point is close to the track direction, while a large val
   $R_{\text{cluster}} = (N_{\text{total}} / N_{\text{images}}) \times f_{\text{fps}}$
 
   where:  
-  N_images is the number of processed images,  
-  f_fps is the camera frame rate (images per second).
+  $N_{\text{images}}$ is the number of processed images,  
+  $f_{\text{fps}}$ is the camera frame rate (images per second).
 This gives the physical particle rate in particles per second.
 - This final step transforms raw reconstructed tracks into physically meaningful observables. It ensures that only reliable clusters are used for analysis and provides global quantities such as particle rate, merging efficiency, and spatial distributions, which are essential for the final physical interpretation of the experiment.
