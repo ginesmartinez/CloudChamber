@@ -88,10 +88,11 @@ filteringProcess.py  performs :
 - The idea is that a single particle track can appear split into multiple pieces, so this step reconstructs the full track by merging consistent fragments. To decide whether two clusters should be merged, the algorithm checks both their spatial and directional consistency.
 - A key step is computing the perpendicular distance from a point to a cluster direction line:
 
-  $$
-  d = | -\sin(\theta)(x - x_0) + \cos(\theta)(y - y_0) |
-  $$
-  A small value means the point is close to the track direction, while a large value means it is not related to that cluster.
+$$
+d = \left| -\sin(\theta)(x - x_0) + \cos(\theta)(y - y_0) \right|
+$$
+
+A small value means the point is close to the track direction, while a large value means it is not related to that cluster.
 - The algorithm loops over all images and builds a clusterMergedList, which contains the final merged clusters. A mergedClusterNumberList is also used to ensure that the same cluster is not merged multiple times.
 - For each reference cluster, the algorithm compares it with other clusters. Only clusters that are not already merged and are physically valid are considered. Each cluster is described using its center position (x, y) and its angle, which defines the track direction.
 
@@ -105,11 +106,9 @@ filteringProcess.py  performs :
 
   - They have similar direction (small angle difference):
 
-    $$
-    \Delta \theta = |\theta_1 - \theta_2|
-    $$
+  $\Delta \theta = |\theta_1 - \theta_2|$
 
-  - They lie along the same track line based on the perpendicular distance test.
+- They lie along the same track line based on the perpendicular distance test.
 
 - When these conditions are satisfied, the clusters are merged by combining their pixel lists into a single larger cluster. The merged cluster is then marked so it cannot be reused again.
 
@@ -126,26 +125,23 @@ filteringProcess.py  performs :
 ## Final Distribution Analysis
 - In src/rec/, the script distributionProcess.py performs the final selection and physical analysis of reconstructed clusters.
 - At this stage, only clusters with good quality are kept. Cuts are applied on cluster properties such as minimum valid length and shape consistency. In addition, clusters located near the image borders are removed because edge regions are more noisy and lead to unreliable detections.
-- Total number of detected particles: the total number of reconstructed clusters is counted over all processed images:
+ - Total number of detected particles: the total number of reconstructed clusters is counted over all processed images:
 
-  $$
-  N_{\text{total}}
-  $$
+  $N_{\text{total}}$
 
 - Merged ratio: the merging efficiency is evaluated using the fraction of clusters that were merged during reconstruction:
 
-  $$
-  R_{\text{merged}} = \frac{N_{\text{total}} - N_{\text{final}}}{N_{\text{total}}}
-  $$
+  $R_{\text{merged}} = (N_{\text{total}} - N_{\text{final}}) / N_{\text{total}}$
 
   This ratio indicates how fragmented the initial detection was.  
   A high value means many fragmented tracks were merged, while a low value indicates clean and well-separated detections.
 
 - Cluster rate (particle rate): the particle detection rate is computed as the number of clusters per second:
 
-  $$
-  R_{\text{cluster}} = \frac{N_{\text{total}}}{N_{\text{images}}} \times f_{\text{fps}}
-  $$
-where:Nimages is the number of processed images, ffps is the camera frame rate (images per second)
+  $R_{\text{cluster}} = (N_{\text{total}} / N_{\text{images}}) \times f_{\text{fps}}$
+
+  where:  
+  N_images is the number of processed images,  
+  f_fps is the camera frame rate (images per second).
 This gives the physical particle rate in particles per second.
 - This final step transforms raw reconstructed tracks into physically meaningful observables. It ensures that only reliable clusters are used for analysis and provides global quantities such as particle rate, merging efficiency, and spatial distributions, which are essential for the final physical interpretation of the experiment.
