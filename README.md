@@ -33,8 +33,8 @@ Main parameters include:
     goodCluster(): quality criteria
     minLength = 15, maxLength = 80 for the track selection
 - Fiducial volume
-    interestArea_x1 = 650, interestArea_x2 = 1260
-    interestArea_y1 = 60, interestArea_y2 = 1030
+    interestArea_x1 = 650, interestArea_x2 = 1260,
+    interestArea_y1 = 60, interestArea_y2 = 1030,
     coronaSize = 25, border exclusion
 
 This file must be adapted for each experimental setup and dataset.
