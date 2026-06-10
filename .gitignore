@@ -1,0 +1,25 @@
+
+# Image files
+*.jpeg
+*.jpg
+*.png
+
+# Data acquisition folders
+data/acq-*/
+data/exp-*/
+
+# Python cache
+__pycache__/
+*.pyc
+src/__pycache__/
+src/exp/
+
+# Virtual environment
+venv/
+
+# Simulation folder
+sim/
+
+# Windows zone identifiers
+*.Identifier
+

@@ -31,12 +31,12 @@ waitTime = .01  # Sleep in sec.
 # Settings of the logger
 my_logger.info("Taking pictures from webcam")
 #camera 1 setup
-camera = cv2.VideoCapture(0)
+camera = cv2.VideoCapture(1)
 camera.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
 camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)
-camera.set(cv2.CAP_PROP_EXPOSURE, 10)
+camera.set(cv2.CAP_PROP_EXPOSURE, 1)
 
 #camera 2 setup
 #camera_2 = cv2.VideoCapture(9)
@@ -64,11 +64,11 @@ sumComputing=0.
 sumStore=0.
 sumMonitoring=0.
 sumTotal=0.
-
 n=0
 nabs = 0
 m=0
-cycle = int (camera.get(cv2.CAP_PROP_FPS)/2. )
+cycle = int (camera.get(cv2.CAP_PROP_FPS)/10. )
+print (cycle)
 while(nextImage):
   # Image acquisition
   sAcquisition = time.perf_counter()

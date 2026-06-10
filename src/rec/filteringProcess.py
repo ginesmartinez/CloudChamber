@@ -137,7 +137,7 @@ def main() :
   io2 = IO(rawDataDirectory, "filt_aber_"+ rawDataFileName + "{}.jpeg")
   
   # Pixel occupancy distribution
-  numberOfpoints = int((iImageF-iImageI)/integrationTime)
+  numberOfpoints = int((iImageF-iImageI)/integrationTime) + 1
   timeStamp = np.zeros(numberOfpoints,dtype=float)
   timeStampError = np.ones(numberOfpoints,dtype=float)
   pixelOccupancyDistribution = np.zeros(numberOfpoints,dtype=float)

@@ -48,6 +48,9 @@ from cloudChamberCommonCode import maxCorrelatedRelativeAngle
 from cloudChamberCommonCode import qualitySigmaShort 
 
 def main() :
+  #To count the remaining Cluster 1 and Cluster 2
+  cluster1KeptCount = 0
+  cluster2KeptCount = 0
 
   # Reading Merged cluster data from merging process.py
   clusterMergedDict = {}
@@ -100,14 +103,20 @@ def main() :
                 relativeAngle = math.fabs(cluster[4]-cluster2[4])
               
                 if (relativeDistance < maxCorrelatedRelativeDistance/calibrationFactor and relativeAngle < maxCorrelatedRelativeAngle) :
-                  if (j==-1) :
-                    if ( math.fabs(cluster[6]-qualitySigmaShort) < math.fabs(cluster2[6]-qualitySigmaShort) ) : 
+                  if (j == 1) :
+                 
+                    if ( math.fabs(cluster[6]-qualitySigmaShort/calibrationFactor) <= math.fabs(cluster2[6]-qualitySigmaShort/calibrationFactor)) : 
                       removeClusterListDict[jImage].append(cluster2[1])
+                      
+                      cluster1KeptCount += 1
                     else :                
                       removeClusterListDict[iImage].append(cluster[1])
                       secondClusterBetter = True
+                      cluster2KeptCount += 1 
+
                   else :  
                     removeClusterListDict[jImage].append(cluster2[1])
+
                 else : 
                   relativeLengthDistribution2 = np.append(relativeLengthDistribution2, relativeDistance)
                   relativeAngleDistribution2  = np.append(relativeAngleDistribution2, relativeAngle)
@@ -256,7 +265,10 @@ def main() :
   angleValues=np.arange(min(relativeAngleDistribution2), max(relativeAngleDistribution2) + binWidth, binWidth)
   histoValues, angleValues, patches =  ax[2,2].hist(relativeAngleDistribution2, bins=angleValues, log=True )
   histoValues, angleValues, patches =  ax[1,2].hist(relativeAngleDistribution2, bins=angleValues, log=True )
-
+  # To know the total kept clusters vs removed
+  my_logger.info("Total kept clusters: %d" % len(lengthDistribution))
+  my_logger.info("cluster1 was better: %d times" % cluster1KeptCount)
+  my_logger.info("cluster2 was better: %d times" % cluster2KeptCount)
   plt.savefig(rawDataDirectory + "removingAnalysis_ControlPlots.pdf")
   plt.show()
  

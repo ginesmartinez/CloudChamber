@@ -1,0 +1,76 @@
+#Experiment - mesure du Radon: 
+# 1- Data paths: 
+data:
+  rawDataDirectory: "../../data/acq-testdata-23-04-2026-mesure-du-Radon/"
+  rawDataFileName: "img_C1_"
+
+# 2- Camera-Calibration
+camera:
+  calibrationFactor: 0.44       # mm per pixel
+# 3-Chessboard: 
+chessboard:
+  damierFileName: "../../data/ImageDamier_FullResolution/Damier_FullResolution.jpeg"
+  nx: 19 #number of chessboard corner in x 
+  ny: 19 #number of chessboard corner in y
+
+# Interest area in the chessboard processing code 
+# Standard fiducial area of the image
+  interestArea_x1: 650  # Parameter zone of interest in the image x1 in pixels
+  interestArea_y1: 60   # Parameter zone of interest in the image y1
+  interestArea_x2: 1260 # Parameter zone of interest in the image x2 : Warning x2 and y2 are lx and ly
+  interestArea_y2: 1030 # Parameter zone of interest in the image y2
+
+# 4- Image range:
+images:
+  iImageIIntegral: 0
+  iImageFIntegral: 14000
+  iImageI: 0 # fisrt image: starting point for filtering
+  #iImageF is auto-detected in cloudChamberCommonCode.py
+  # It is set to the last available aber_ image minus 2 * timePeriod, to avoid potentia crashes.
+
+# 5- Background estimation:
+background:
+  seuilDiff: 20  # Parameter : pixel intensity difference threshold
+  timeStep: 6    # Parameter : time step in unit of image number, to avoid correlation between sequential images
+  timePeriod: 60 # Parameter : time period considered to build the background image
+
+
+# 6- Binarization:
+binarization:
+  seuil: 70 # Parameter Threshold for binarization
+
+# 7- Occupancy:
+occupancy:
+  imagesPerSecond: 1.96 #see output of chessboard correction processing
+  filteringOption: 1     # 0 for doing only control plots
+  deltaTimeStep: 10.0    # in images, integer
+  integrationTime: 10.0  # in images, integer
+  occupancyFittingOption: "cons"  # "cons" or "exp"
+
+# 8- Clustering: 
+clustering:
+  clusterSizeThreshold: 45 # Parameter : minimum size of the cluster to be analyzed
+
+# 9- Merging:
+merging:
+  maxLinePointDistance: 4.0     # mm
+  maxRelativeAngle: 25.0        # degrees
+  maxRelativeDistance: 50.0     # mm
+
+# 10- Good cluster selection (mm)
+goodCluster:
+  minTransverseSigma: 0.4
+  maxTransverseSigma: 6.0
+  minLongitudinalSigma: 2.5
+
+# 11- Correlated clusters:
+correlatedClusters:
+  maxCorrelatedRelativeDistance: 75   # mm
+  maxCorrelatedRelativeAngle: 25      # degrees
+  qualitySigmaShort: 1.5              # mm
+
+# 12- Final analysis:
+finalAnalysis:
+  coronaSize: 25.0              # mm
+  minLength: 15.0               # mm
+  maxLength: 80.0               # mm

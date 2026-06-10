@@ -233,6 +233,18 @@ def main() :
     plt.savefig(rawDataDirectory+"finalClusterAnalysis_ControlPlots.pdf")    
     plt.show()
     
+     #  figure for x vs y 
+    fig2, ax2 = plt.subplots(nrows=1, ncols=1, figsize=(8, 6))
+    ax2.set_xlabel(r"$\rm{x \; (mm)}$")
+    ax2.set_ylabel(r"$\rm{y \; (mm)}$")
+    ax2.set_title(r"$\rm{Position \; des \; traces \; alpha \; (x \; vs \; y)}$")
+    ax2.set_xlim(0., 250.)
+    ax2.set_ylim(420., 0.)
+    ax2.scatter(meanXDistribution, meanYDistribution,
+                s=5, alpha=0.5, color='blue')
+    plt.savefig(rawDataDirectory + "finalClusterAnalysis_XvsY.pdf")
+    plt.show()
+    
 
   
 if __name__ == "__main__" :

@@ -3,11 +3,12 @@ import logging
 import os
 import cv2
 import numpy as np
+import yaml
 
 # Settings of the logger
 MY_FORMAT = "%(asctime)-24s %(levelname)-6s %(message)s"
 logging.basicConfig(format=MY_FORMAT, level=logging.INFO)
-my_logger=logging.getLogger()
+my_logger=logging.getLogger() 
 
 # Data analysis directory and files
 #rawDataDirectory = "../DACQ_1807_two_camera_poire/"
@@ -17,26 +18,38 @@ my_logger=logging.getLogger()
 #rawDataDirectory = "../DACQ_1807/"
 #rawDataFileName = "img_C1_"  
 
+#Load Yaml
+if len(sys.argv) > 1:
+    config_path = os.path.abspath(sys.argv[1])
+    my_logger.info("Loading config from: %s" % config_path)
+else:
+    my_logger.error("No YAML config file provided!")
+    my_logger.error("Usage: python script.py /path/to/experiment.yaml")
+    sys.exit(1)
+
+with open(config_path, "r") as f:
+    cfg = yaml.safe_load(f)
+
 # 1. Image Data Taking
-rawDataDirectory = "../../data/acq-testdata/"
-rawDataFileName = "img_C1_"  
+rawDataDirectory = cfg["data"]["rawDataDirectory"]
+rawDataFileName = cfg["data"]["rawDataFileName"]  
 
 # Web camera calibration from aberration corrections and chessboard image July 2024
-calibrationFactor = 0.44 # mm per pixel
+calibrationFactor = cfg["camera"]["calibrationFactor"] # mm per pixel
 
 # 2. Chessboard processing Parameters 
 #damierFileName = "noCorrection"
-damierFileName = "../../data/ImageDamier_FullResolution/Damier_FullResolution.jpeg"
+damierFileName   = cfg["chessboard"]["damierFileName"]
 #dimension of the chessboard
-nx = 19 #number of chessboard corner in x 
-ny = 19 #number of chessboard corner in y
+nx = cfg["chessboard"]["nx"] #number of chessboard corner in x 
+ny = cfg["chessboard"]["ny"] #number of chessboard corner in y
 
 # Interest area in the chessboard processing code 
 # Standard fiducial area of the image
-interestArea_x1 = 650 # Parameter zone of interest in the image x1 in pixels
-interestArea_y1 = 60 # Parameter zone of interest in the image y1
-interestArea_x2 = 1260 # Parameter zone of interest in the image x2 : Warning x2 and y2 are lx and ly
-interestArea_y2 = 1030 # Parameter zone of interest in the image y2
+interestArea_x1  = cfg["chessboard"]["interestArea_x1"] # Parameter zone of interest in the image x1 in pixels
+interestArea_y1  = cfg["chessboard"]["interestArea_y1"] # Parameter zone of interest in the image y1
+interestArea_x2  = cfg["chessboard"]["interestArea_x2"] # Parameter zone of interest in the image x2 : Warning x2 and y2 are lx and ly
+interestArea_y2  = cfg["chessboard"]["interestArea_y2"] # Parameter zone of interest in the image y2
 # DACQ juillet 2024
 #interestArea_x1 = 650 # Parameter zone of interest in the image x1 in pixels
 #interestArea_y1 = 60 # Parameter zone of interest in the image y1
@@ -53,50 +66,57 @@ interestArea_y2 = 1030 # Parameter zone of interest in the image y2
 #iImageFIntegral = 2460 # DACQ_220124
 #iImageFIntegral = 6005 # DACQ_1807
 #iImageFIntegral = 3419 # DACQ_1807_two_camera_poire
-iImageIIntegral = 0    # testdata
-iImageFIntegral = 1000 # testdata
+iImageIIntegral = cfg["images"]["iImageIIntegral"]    # testdata
+iImageFIntegral = cfg["images"]["iImageFIntegral"] # testdata
 
 
 # 3. Filtering and clustering Processing Parameters
-iImageI = 100 # Parameter first image  
-iImageF = 900 # Parameter last image
+iImageI = cfg["images"]["iImageI"] # Parameter first image  
+# timePeriod must therefore be defined before iImageF ( The final Image for filtering)
 
 # Background Estimation Parameters
-seuilDiff = 20 # Parameter : pixel intensity difference threshold
-timeStep = 6 # Parameter : time step in unit of image number, to avoid correlation between sequential images
-timePeriod = 60 # Parameter : time period considered to build the background image
+seuilDiff = cfg["background"]["seuilDiff"] # Parameter : pixel intensity difference threshold
+timeStep = cfg["background"]["timeStep"] # Parameter : time step in unit of image number, to avoid correlation between sequential images
+timePeriod = cfg["background"]["timePeriod"] # Parameter : time period considered to build the background image
+#iImageF is not read from YAML but auto-detected at runtime.It is computed as the number of available aber_ images minus timePeriod, to ensure the background function always has enough images to look ahead.
+iImageF = 0
+while os.path.isfile(os.path.join(rawDataDirectory, "aber_" + rawDataFileName + str(iImageF) + ".jpeg")):
+    iImageF += 1
+iImageF = iImageF - 2 * timePeriod
+my_logger.info("Auto-detected iImageF: %d" % iImageF) # Parameter last image
 
 # Binarization
-seuil = 70 # Parameter Threshold for binarization
+seuil = cfg["binarization"]["seuil"] # Parameter Threshold for binarization
 
 # Calculation of the occupancy
 #imagesPerSecond = 1.94 # January 18 2024, see output of chessboard correction processing
 #imagesPerSecond = 1.84 # July 18 2024, see output of chessboard correction processing
 #imagesPerSecond = 5.60  # Two camera poire July 18 2024
-imagesPerSecond = 1.83 # As calculated during the previous correction step
-filteringOption = 0 # !=0 default, 0 for doing only control plots
-deltaTimeStep = 10. # in images, integer
-integrationTime = 10. * deltaTimeStep # in images, integer
-occupancyFittingOption = "cons" # or exp
+#imagesPerSecond = 1.83 # As calculated during the previous correction step fot gitlab test data
+imagesPerSecond = cfg["occupancy"]["imagesPerSecond"] 
+filteringOption = cfg["occupancy"]["filteringOption"] # !=0 default, 0 for doing only control plots
+deltaTimeStep = cfg["occupancy"]["deltaTimeStep"] # in images, integer
+integrationTime = cfg["occupancy"]["integrationTime"] * deltaTimeStep # in images, integer
+occupancyFittingOption = cfg["occupancy"]["occupancyFittingOption"]
 
 # 3. Raw Clustering Processing Parameters
 # cluster size threshold
-clusterSizeThreshold = 45 # Parameter : minimum size of the cluster to be analyzed
+clusterSizeThreshold = cfg["clustering"]["clusterSizeThreshold"] # Parameter : minimum size of the cluster to be analyzed
 #clusterSizeThreshold = 25 # DACQ_220124
 
 # 4. Merging Processing Parameters
-maxLinePointDistance = 4.0 #(in mm)
+maxLinePointDistance = cfg["merging"]["maxLinePointDistance"] #(in mm)
 #maxLinePointDistance = 3.0 #(in mm) for DACQ_220124
-maxRelativeAngle = 25. #(in degrés)
-maxRelativeDistance = 50. #(in mm)
+maxRelativeAngle = cfg["merging"]["maxRelativeAngle"] #(in degrés)
+maxRelativeDistance = cfg["merging"]["maxRelativeDistance"] #(in mm)
 #maxRelativeDistance = 50. #(in mm) for DACQ_220124
 
 
 # Good cluster parameters  (in mm)
-goodClusterMinClusterTransverseSigma = 0.4
-goodClusterMaxClusterTransverseSigma = 4.0
+goodClusterMinClusterTransverseSigma = cfg["goodCluster"]["minTransverseSigma"]
+goodClusterMaxClusterTransverseSigma = cfg["goodCluster"]["maxTransverseSigma"]
 #goodClusterMaxClusterTransverseSigma = 3.2 # DACQ_220124
-goodClusterMinClusterLongitudinalSigma = 2.5
+goodClusterMinClusterLongitudinalSigma = cfg["goodCluster"]["minLongitudinalSigma"]
 
 # Good Cluster Selection
 def goodCluster(cluster) :
@@ -107,22 +127,22 @@ def goodCluster(cluster) :
 
 # 5. Removing Correlated Cluster Processing Parameters
 # Maximum relative distance between two correlated clusters in two different images in pixels
-maxCorrelatedRelativeDistance = 75. # in mm
+maxCorrelatedRelativeDistance = cfg["correlatedClusters"]["maxCorrelatedRelativeDistance"] # in mm
 #maxCorrelatedRelativeDistance = 20. # DACQ 220124
 
 # Maximum relative angle between two correlated clusters in two different images in pixels
-maxCorrelatedRelativeAngle = 25. #
+maxCorrelatedRelativeAngle = cfg["correlatedClusters"]["maxCorrelatedRelativeAngle"] #
 #maxCorrelatedRelativeAngle = 10. # DAQC_220124
 
 # Best choice of the correlated cluster between j=0 ad j=1 (not used now)
-qualitySigmaShort = (goodClusterMinClusterTransverseSigma + goodClusterMaxClusterTransverseSigma)/2. 
-
+#qualitySigmaShort = (goodClusterMinClusterTransverseSigma + goodClusterMaxClusterTransverseSigma)/2. 
+qualitySigmaShort = cfg["correlatedClusters"]["qualitySigmaShort"] #
 # 6. Final Analysis Distribution Process
 # corona Volume in mm
-coronaSize = 25. # 
+coronaSize = cfg["finalAnalysis"]["coronaSize"] # 
 # minimal length in mm
-minLength = 15.
-maxLength = 80.
+minLength = cfg["finalAnalysis"]["minLength"]
+maxLength = cfg["finalAnalysis"]["maxLength"]
 
 # Reading Image Interface Class
 class IO:

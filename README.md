@@ -5,7 +5,7 @@ Python code to take images of a cloud chamber and to analyse them: optical corre
 Before using the code, the experimental setup must be carefully prepared:
 - The cloud chamber must be cleaned thoroughly:
    Glass surface, internal volume (cloud), electrical wires and components. To reduce noise and unwanted traces.
-- The webcam must be correctly positioned: the image is rectangular, the full field of view must include the calibration chessboard (damier) and check alignment before data taking.
+- The webcam must be correctly positioned: the image is rectangular, the full field of view must include the calibration chessboard (damier) and check alignment before data taking. For the Cloud Chamber At Subatech, When connecting the webcam, the USB cable must be routed alongside the switchers and the alcohol tank, specifically the cable that runs from the electronics box downward.
 - The system must be protected from external light: use a cover on the cloud chamber, in practice (Subatech), the cover is not sufficient.
 - Additional protection is required: paper or cardboard around the setup, especially around the chessboard area. This is critical to reduce background noise ("bruit de fond").
 
@@ -37,7 +37,17 @@ Main parameters include:
     interestArea_y1 = 60, interestArea_y2 = 1030,
     coronaSize = 25, border exclusion
 
-This file must be adapted for each experimental setup and dataset.
+### YAML Files
+You do not need to modify `cloudChamberCommonCode.py` directly.
+Each experiment has its own dedicated YAML configuration file. All parameters specific to a dataset (thresholds, directories, calibration factors, etc.) are set inside the corresponding YAML file. The scripts load this file at runtime, so switching between experiments only requires changing the YAML path in the command.
+Each script is launched from the terminal with the path to the experiment YAML file as argument:
+```bash
+python  <script>.py  ..\..\data\exp-<experiment-name>.yaml
+```
+The Available YAML configurations:
+| `exp-23-04-2026-mesure-du-Radon.yaml` | Dataset of ~14 000 images acquired on 23-04-2026 in the office (J019) of Gines MARTINEZ at Subatech |
+| `exp-11-05-2026-Source-Uranium.yaml` | Dataset with Alpha Uranium source, acquired on 11-05-2026 at SUBATECH|
+
 
 ## Image Data Taking
 - In src/acq/ directory the python3 script webcam_dacq.py to take a series of images of the webcam (to be used at the end of the day with FULL HD WEBCAM using a linux computer). See specifications of the webcam FULL HD in the doc directory.
@@ -61,6 +71,15 @@ filteringProcess.py  performs :
 - At the end of the filtering, the average occupancy over a certains interval of images (integrationTime expressed as a number of Image). Only images every deltaTimeStep in unit of images are considered to avoid correlations. The error of the averaged pixel occupancy is measured from the statistical fluctuation in the considered interval of averaging. These results is presented as a plot and the data occupancy point can be fitted to a constant or exponential plus constant function. 
 - this script can be executed with a filtering option set to zero, on order to performed only the occupancy and fitting process. 
 - For the first execution, the filtering option is set to 1 to perform the full image processing (background computation, subtraction, binarization, and filtering). This step is necessary to generate clean data and reduce noise. The option 0 is only used afterward for faster analysis on already processed images (occupancy and fitting only).
+- The filtering step depends on the total number of images available in the dataset. To avoid index-out-of-range crashes when the number of images is not a clean multiple of the background time period, the last image index `iImageF` is computed automatically at runtime using the following logic:
+1. Scan the raw data directory and increment `iImageF` until no more image files are found.
+2. Subtract $2 \times T_{\text{period}}$ from the detected count to leave a safe margin at the end and prevent the background computation from jumping over the last available images.
+
+$$
+i_{\text{ImageF}} = N_{\text{detected}} - 2 \times T_{\text{period}}
+$$
+
+where $N_{\text{detected}}$ is the index of the last existing image file found on disk, and $T_{\text{period}}$ (`timePeriod`) is the background averaging window defined in the YAML configuration.
 
 ## Raw clustering of filtered images
 - In src/rec/, the script rawClusteringProcess.py is used to detect and analyze particle tracks by grouping connected pixels into clusters. These clusters are then used to study key properties such as position, angle, length, shape, and cluster size.
@@ -101,7 +120,7 @@ A small value means the point is close to the track direction, while a large val
 - The algorithm starts from the previously merged clusters and builds a new dictionary called clusterDictRemoved, which stores the final cleaned results. For each image, every cluster is compared not only with clusters in the same frame but also with clusters in the next 7 images. This is done because a physical track can persist across several frames depending on the camera frame rate and the particle lifetime, which helps avoid missing delayed duplicates.
 - The process is similar to the merging step: for each reference cluster in a given image, only physically meaningful clusters are considered, and clusters already marked for removal are skipped. Then each reference cluster is compared with candidate clusters in later frames.
 - For each comparison, the algorithm recomputes the spatial distance and the angle difference between clusters. If two clusters have nearly the same position and direction, they are considered to represent the same physical track. In this case, the second cluster is marked as a duplicate and stored in RemoveClusterListDict, so it can be removed later.
-- A small additional condition is used: if j == -1, the algorithm checks the quality of the clusters, and if the second cluster has better shape information, it is preferred instead of the first one.
+- A small additional condition is used: if j == 1, the algorithm checks the quality of the clusters, and if the second cluster has better shape information, it is preferred instead of the first one.
 - Finally, once duplicates are removed, the physical quantities of the tracks are extracted. The track length, position, and size are computed using a calibration factor. The factor is multiplied by 2 because the track width is interpreted as a Gaussian distribution, where the measured value corresponds to σ (standard deviation), and the full track size is taken as 2σ.
 
 ## Final Distribution Analysis
